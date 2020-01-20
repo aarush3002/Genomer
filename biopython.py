@@ -64,14 +64,24 @@ dog = dog.drop('sequence', axis=1)
 #from the pandas table to be more efficient. 
 
 human_texts = list(human['words'])
-print(human_texts)
 #transforming the 'words' column into its own list and storing it in human_texts
 for item in range(len(human_texts)): #each index of this list represents the output of getKmers for the sequence
     human_texts[item] = ' '.join(human_texts[item]) #since this is a 2D list, we are just connecting each list into a string separated with spaces
 y_h = human.iloc[:, 0].values  
 #y_h contains all the class numbers of each sequence of DNA in the entire file
 #it will be a list of numbers as so: [4 4 3 ... 6 6 6]
+'''
+The class labels mean that a sequence will code for a specific protein:
 
+GENE FAMILY                         CLASS LABEL
+G protein coupled receptors         0
+Tyrosine kinase                     1
+Tyrosine phosphatase                2
+Synthetase                          3
+Synthase                            4
+Ion Channel                         5
+Transcription Factor                6
+'''
 #we will be doing the same things for the chimp and dog data
 chimp_texts = list(chimp['words'])
 for item in range(len(chimp_texts)):
@@ -119,9 +129,12 @@ print(X_dog.shape)
 For example:
 (4380, 232414)
 '''
-human['class'].value_counts().sort_index().plot.bar()
-chimp['class'].value_counts().sort_index().plot.bar()
-dog['class'].value_counts().sort_index().plot.bar()
+
+'''
+print(human['class'].value_counts().sort_index().plot.bar())
+print(chimp['class'].value_counts().sort_index().plot.bar())
+print(dog['class'].value_counts().sort_index().plot.bar())
+'''
 
 '''
 .value_counts():
@@ -151,12 +164,38 @@ X_train, X_test, y_train, y_test = train_test_split(X,
 '''
 Split arrays or matrices into random train and test subsets
 
-Quick utility that wraps input validation and next(ShuffleSplit().split(X, y)) and application to input data into a single call for splitting
-(and optionally subsampling) data in a oneliner.
-'''
+For example
+x = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
+y = [0,1,2,3,4]
 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+
+Since the test_size is 0.33 that means the train_size is 0.67, the function will randomly select (2/3)*5 or roughly 3 elements 
+from the list. 
+
+X_train = [[4,5], [0,1], [6,7]]
+y_train = [2,0,3]
+
+
+The data set for the test set will contain only the elements that haven't been selected by the training set yet.
+It will randomly order these elements.
+X_test = [[8,9], [2,3]]
+y_test = [1,4]
+
+In our situation, we can see that the training set will have randomly selected of 80% of the elements
+while the testing set will contain the rest of the elements in selected in a random order
+
+the random_state parameter just specifies the seed of the random number generator (takes in int)
+
+'''
 print(X_train.shape)
 print(X_test.shape)
+#print(X_test)
+
+'''
+.shape gives the dimensionality of the data frame
+'''
+
 
 classifier = MultinomialNB(alpha=0.1)
 '''
@@ -166,21 +205,46 @@ The multinomial Naive Bayes classifier is suitable for classification with discr
 distribution normally requires integer feature counts. However, in practice, fractional counts such as tf-idf may also work.
 '''
 classifier.fit(X_train, y_train)
-print(classifier)
-y_pred = classifier.predict(X_test)
+'''
+fit naive bayes classifier according to X, y
+'''
+y_pred = classifier.predict(X_test) 
+
 '''
 given a trained model, predict the label of a new set of data. This method accepts one argument, the new data X_new (e.g. model.predict(X_new)),
 and returns the learned label for each object in the array.
+
+The dimensionality of X_test is (3504, 876) so the y_pred prediction will contain 876 elements
 '''
 
 print("Confusion matrix\n")
 print(pd.crosstab(pd.Series(y_test, name='Actual'), pd.Series(y_pred, name='Predicted')))
+
+#Will construct a pandas table with a row named Predicted, and a column named Acutal
+#the Predicted row will have 0-6 for each class label, and the Actual column will have
+#the same 0-6 for each class label.
 def get_metrics(y_test, y_predicted):
     accuracy = accuracy_score(y_test, y_predicted)
     precision = precision_score(y_test, y_predicted, average='weighted')
     recall = recall_score(y_test, y_predicted, average='weighted')
     f1 = f1_score(y_test, y_predicted, average='weighted')
     return accuracy, precision, recall, f1
+
+'''
+The get_metrics function will calculate the accuracy score, precision score, recall score
+and f1 score.
+
+The accuracy score is the set of labels predicted for a sample must exactly match the corresponding
+set of labels in y_test
+
+The precision score is equal to tp / (tp + fp), where tp = # of true positives, fp = # of false positives
+The ability of the classifier to not label as positive a sample that is negative
+
+The recall score is equal to tp / (tp + fn), where tp = # true positives, and fn = # false negatives
+This ist he ability of the model to find all positive samples
+
+The f1 score is a weighted average of the precision and recall. 
+'''
 accuracy, precision, recall, f1 = get_metrics(y_test, y_pred)
 print("accuracy = %.3f \nprecision = %.3f \nrecall = %.3f \nf1 = %.3f" % (accuracy, precision, recall, f1))
 
@@ -196,45 +260,3 @@ print("Confusion matrix\n")
 print(pd.crosstab(pd.Series(y_d, name='Actual'), pd.Series(y_pred_dog, name='Predicted')))
 accuracy, precision, recall, f1 = get_metrics(y_d, y_pred_dog)
 print("accuracy = %.3f \nprecision = %.3f \nrecall = %.3f \nf1 = %.3f" % (accuracy, precision, recall, f1))
-'''from __future__ import with_statement
-import sys
-import os
-import operator
-
-from Bio import SeqIO
-from Bio.SeqRecord import SeqRecord
-
-from BCBio import GFF
-
-def main(glimmer_file, ref_file):
-    with open(ref_file) as in_handle:
-        ref_recs = SeqIO.to_dict(SeqIO.parse(in_handle, "fasta"))
-
-    base, ext = os.path.splitext(glimmer_file)
-    out_file = "%s-proteins.fa" % base
-    with open(out_file, "w") as out_handle:
-        SeqIO.write(protein_recs(glimmer_file, ref_recs), out_handle, "fasta")
-
-def glimmer_predictions(in_handle, ref_recs):
-    """Parse Glimmer output, generating SeqRecord and SeqFeatures for predictions
-    """
-    for rec in GFF.parse(in_handle, target_lines=1000, base_dict=ref_recs):
-        yield rec
-
-def protein_recs(glimmer_file, ref_recs):
-    """Generate protein records from GlimmerHMM gene predictions.
-    """
-    with open(glimmer_file) as in_handle:
-        for rec in glimmer_predictions(in_handle, ref_recs):
-            for feature in rec.features:
-                seq_exons = []
-                for cds in feature.sub_features:
-                    seq_exons.append(rec.seq[
-                        cds.location.nofuzzy_start:
-                        cds.location.nofuzzy_end])
-                gene_seq = reduce(operator.add, seq_exons)
-                if feature.strand == -1:
-                    gene_seq = gene_seq.reverse_complement()
-                protein_seq = gene_seq.translate()
-                yield SeqRecord(protein_seq, feature.qualifiers["ID"][0], "", "")
-'''
