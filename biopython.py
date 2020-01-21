@@ -1,3 +1,8 @@
+'''
+Contributors: Aarush Aitha, Kevin Liu
+Version Number: 2.0
+Revision Date: 1/19/20
+'''
 from Bio import SeqIO
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
@@ -245,6 +250,7 @@ This ist he ability of the model to find all positive samples
 
 The f1 score is a weighted average of the precision and recall. 
 '''
+
 accuracy, precision, recall, f1 = get_metrics(y_test, y_pred)
 print("accuracy = %.3f \nprecision = %.3f \nrecall = %.3f \nf1 = %.3f" % (accuracy, precision, recall, f1))
 
