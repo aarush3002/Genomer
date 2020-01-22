@@ -9,7 +9,7 @@ pip install pandas
 
 In order to use this program, make sure to have all the data files in one directory. Then, go into your command line (if you're on a Windows system), navigate to the correct directory using "cd", and then type:
 
-python <filename>.py
+python filename.py
   
 in order to run the program. 
 
