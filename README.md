@@ -1,5 +1,5 @@
 # Genomer
-This program will use a data file containing DNA and will predict gene sequences based on the training set. It will then compare the predicted sequences to the testing set to see the accuracy of the model. This project uses multiple libraries, but focuses on the sklearn library (sci-kit learn), which is useful for machine learning. We also used pandas to organize our data and Biopython to read our data files. You will need to install Python 3.7 to run this program. You must also install the libraries with the following commands (enter in cmd):
+This program will use a complete human genome as a training set. It will then predict the translational product that will be created when given an unlabeled DNA sequences. This project uses the sklearn library from Python in order to train our model to a Multinomial Naive Bayes Classifier. It will then predict the labels of the given DNA sequences and then compare those labels to the actual labels from the testing set.
 
 pip install biopython
 
